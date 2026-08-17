@@ -12,11 +12,11 @@ interface ApprovalChainTabProps {
   groupHeadComments?: ApprovalChainComment[]
 }
 
-function CommentCard({ entry }: { entry: ApprovalChainComment }) {
+function CommentCard({ title, entry }: { title: string; entry: ApprovalChainComment }) {
   return (
     <div className="rounded-xl bg-slate-50 p-4">
       <div className="flex items-center justify-between gap-4">
-        <p className="font-semibold text-slate-900">{entry.author}</p>
+        <p className="font-semibold text-slate-900">{title}</p>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">{entry.date}</span>
           {entry.approved && (
