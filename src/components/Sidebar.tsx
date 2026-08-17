@@ -16,7 +16,7 @@ export default function Sidebar() {
   const visibleItems = navItems.filter((item) => currentUser.visiblePages.includes(item.key))
 
   return (
-    <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r border-slate-200 bg-white">
+    <aside className="print:hidden sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r border-slate-200 bg-white">
       <div className="flex h-20 items-center border-b border-slate-200 px-6">
         <img src={accessLogo} alt="Access" className="h-6 w-auto" />
       </div>

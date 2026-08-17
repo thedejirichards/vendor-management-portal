@@ -5,6 +5,7 @@ export interface OnboardingSubmission {
   vendorId: string
   vendorName: string
   vendorEmail?: string
+  businessUnit?: string
   submittedDate: string
   submittedLabel: string
   status: OnboardingStatus

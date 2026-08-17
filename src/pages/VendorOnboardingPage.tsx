@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Eye, Plus } from 'lucide-react'
+import { Search, Eye, FileText, Plus } from 'lucide-react'
 import Breadcrumb from '../components/Breadcrumb'
 import Pagination from '../components/Pagination'
 import OnboardingStatusBadge from '../components/OnboardingStatusBadge'
@@ -222,13 +222,24 @@ export default function VendorOnboardingPage() {
                   </td>
                   {tab !== 'invited' && (
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        to={`/vendor-onboarding/${submission.id}`}
-                        className="inline-flex items-center gap-1.5 font-semibold text-brand-600 hover:underline"
-                      >
-                        View
-                        <Eye className="h-4 w-4" />
-                      </Link>
+                      <div className="flex items-center justify-end gap-4">
+                        {(submission.status === 'Approved' || submission.status === 'Rejected') && (
+                          <Link
+                            to={`/vendor-onboarding/${submission.id}/report`}
+                            className="inline-flex items-center gap-1.5 font-semibold text-brand-600 hover:underline"
+                          >
+                            Report
+                            <FileText className="h-4 w-4" />
+                          </Link>
+                        )}
+                        <Link
+                          to={`/vendor-onboarding/${submission.id}`}
+                          className="inline-flex items-center gap-1.5 font-semibold text-brand-600 hover:underline"
+                        >
+                          View
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </div>
                     </td>
                   )}
                 </tr>

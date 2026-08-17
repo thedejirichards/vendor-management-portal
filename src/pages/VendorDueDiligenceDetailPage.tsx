@@ -9,12 +9,14 @@ import RiskAssessmentTab from '../components/RiskAssessmentTab'
 import BusinessAssessmentTab from '../components/BusinessAssessmentTab'
 import ConfirmSubmissionModal from '../components/ConfirmSubmissionModal'
 import SubmittedSuccessModal from '../components/SubmittedSuccessModal'
-import { dueDiligenceRequests } from '../data/dueDiligenceRequests'
+import { dueDiligenceRequests, updateDueDiligenceRequestStatus } from '../data/dueDiligenceRequests'
 import { getDocumentComparisons } from '../data/documentComparisons'
 import { assessmentSummaryFields } from '../data/assessmentSummaryFields'
 import { businessAssessmentFields } from '../data/businessAssessmentFields'
 import { riskAssessmentParameters, testScoreScenarios } from '../data/riskAssessmentParameters'
 import { getReviewData, saveReviewData } from '../data/reviewData'
+import { saveCaseCompletion } from '../data/caseCompletions'
+import { dueDiligenceReportRecipients, groupEmailRecipient } from '../data/reportRecipients'
 import { emptyOperationalRiskEntry, sampleOperationalRiskEntry, isOperationalRiskEntryComplete } from '../data/operationalRisk'
 import { useCurrentUser } from '../context/useCurrentUser'
 import type { AssessmentSummaryValues, OperationalRiskEntry, RatingKey, RiskAssessmentRatings } from '../types/assessment'
@@ -161,6 +163,9 @@ function CaseReview() {
     setConfirmOpen(true)
   }
 
+  const isCaseCompletingAction = isFinalApprover && (action === 'approve' || action === 'reject')
+  const reportRecipients = isFinalApprover ? [...dueDiligenceReportRecipients(), groupEmailRecipient(request.businessUnit)] : []
+
   function handleConfirm() {
     setConfirmOpen(false)
     if (action === 'submit' && id) {
@@ -168,6 +173,16 @@ function CaseReview() {
     }
     if (action === 'recommendDeactivation') {
       setDeactivationRecommended(true)
+    }
+    if (isCaseCompletingAction && id) {
+      updateDueDiligenceRequestStatus(id, action === 'approve' ? 'Completed' : 'Rejected')
+      saveCaseCompletion(id, {
+        decision: action === 'approve' ? 'approved' : 'rejected',
+        decidedByName: currentUser.name,
+        decidedByRole: currentUser.role,
+        decidedAtLabel: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        comment,
+      })
     }
     setSuccessOpen(true)
   }
@@ -295,6 +310,8 @@ function CaseReview() {
         onClose={handleCloseSuccess}
         title={actionCopy[action].successTitle}
         message={actionCopy[action].successMessage}
+        sharedWithEmails={isCaseCompletingAction ? reportRecipients.map((r) => r.email) : undefined}
+        onViewReport={isCaseCompletingAction ? () => navigate(`/vendor-due-diligence/${id}/report`) : undefined}
       />
     </div>
   )

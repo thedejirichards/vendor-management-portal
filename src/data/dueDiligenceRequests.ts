@@ -130,3 +130,8 @@ export function addDueDiligenceRequest(
   dueDiligenceRequests.unshift(request)
   return request
 }
+
+export function updateDueDiligenceRequestStatus(id: string, status: DueDiligenceRequest['status']) {
+  const request = dueDiligenceRequests.find((r) => r.id === id)
+  if (request) request.status = status
+}

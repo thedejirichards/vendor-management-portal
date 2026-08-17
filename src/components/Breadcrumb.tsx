@@ -14,7 +14,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
   const normalized: BreadcrumbItem[] = items.map((item) => (typeof item === 'string' ? { label: item } : item))
 
   return (
-    <nav className="flex items-center gap-2 text-sm text-slate-400">
+    <nav className="print:hidden flex items-center gap-2 text-sm text-slate-400">
       <Link to="/dashboard" className="flex items-center hover:text-slate-600">
         <Home className="h-4 w-4" />
       </Link>

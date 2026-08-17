@@ -10,7 +10,7 @@ export default function Header() {
   const initial = currentUser.name.charAt(0).toUpperCase()
 
   return (
-    <header className="relative flex h-20 items-center justify-end border-b border-slate-200 bg-white px-8">
+    <header className="print:hidden relative flex h-20 items-center justify-end border-b border-slate-200 bg-white px-8">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

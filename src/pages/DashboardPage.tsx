@@ -40,22 +40,24 @@ export default function DashboardPage() {
       <h1 className="mt-3 text-3xl font-bold text-slate-900">Dashboard</h1>
       <p className="mt-1 text-slate-500">Overview of vendor management metrics and statistics</p>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50">
-            <Files className="h-5 w-5 text-brand-600" />
-          </span>
-          <p className="mt-4 text-sm text-slate-500">Total Number of Vendors</p>
-          <p className="mt-1 text-4xl font-bold text-slate-900">{vendors.length}</p>
+      <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50">
+              <Files className="h-4.5 w-4.5 text-brand-600" />
+            </span>
+            <p className="text-sm text-slate-500">Total Number of Vendors</p>
+          </div>
+          <p className="mt-2 text-3xl font-bold text-slate-900">{vendors.length}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
-            <ClipboardCheck className="h-5 w-5 text-emerald-600" />
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
+            <ClipboardCheck className="h-4.5 w-4.5 text-emerald-600" />
           </span>
-          <p className="mt-4 font-semibold text-slate-900">Due Diligence Completed</p>
+          <p className="mt-3 font-semibold text-slate-900">Due Diligence Completed</p>
 
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="mt-3 flex flex-col gap-2.5">
             {DD_CLASSES.map((cls) => {
               const { complete, total } = dueDiligenceStats(cls)
               const pct = total ? (complete / total) * 100 : 0
@@ -67,7 +69,7 @@ export default function DashboardPage() {
                       {complete}/{total}
                     </span>
                   </div>
-                  <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-100">
+                  <div className="mt-1 h-1.5 w-full rounded-full bg-slate-100">
                     <div
                       className="h-1.5 rounded-full bg-emerald-500"
                       style={{ width: `${pct}%` }}
@@ -79,22 +81,22 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
-            <AlertTriangle className="h-5 w-5 text-amber-600" />
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50">
+            <AlertTriangle className="h-4.5 w-4.5 text-amber-600" />
           </span>
-          <p className="mt-4 font-semibold text-slate-900">Risk Categories</p>
+          <p className="mt-3 font-semibold text-slate-900">Risk Categories</p>
 
-          <div className="mt-4 flex flex-col gap-2">
-            <div className="flex items-center justify-between rounded-lg bg-red-50 px-4 py-2.5">
+          <div className="mt-3 flex flex-col gap-1.5">
+            <div className="flex items-center justify-between rounded-lg bg-red-50 px-4 py-2">
               <span className="text-sm font-medium text-red-600">High Risk</span>
               <span className="text-sm font-bold text-red-600">{highRisk}</span>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-amber-50 px-4 py-2.5">
+            <div className="flex items-center justify-between rounded-lg bg-amber-50 px-4 py-2">
               <span className="text-sm font-medium text-amber-600">Medium Risk</span>
               <span className="text-sm font-bold text-amber-600">{mediumRisk}</span>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-4 py-2.5">
+            <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-4 py-2">
               <span className="text-sm font-medium text-emerald-600">Low Risk</span>
               <span className="text-sm font-bold text-emerald-600">{lowRisk}</span>
             </div>

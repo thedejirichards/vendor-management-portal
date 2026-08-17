@@ -11,11 +11,13 @@ import MakersAssessmentTab from '../components/MakersAssessmentTab'
 import ApprovalChainTab from '../components/ApprovalChainTab'
 import ConfirmSubmissionModal from '../components/ConfirmSubmissionModal'
 import SubmittedSuccessModal from '../components/SubmittedSuccessModal'
-import { onboardingSubmissions } from '../data/onboardingSubmissions'
+import { onboardingSubmissions, updateOnboardingSubmissionStatus } from '../data/onboardingSubmissions'
 import { getVendorDocuments } from '../data/vendorDocuments'
 import { assessmentSummaryFields } from '../data/assessmentSummaryFields'
 import { riskAssessmentParameters, testScoreScenarios } from '../data/riskAssessmentParameters'
 import { getReviewData, saveReviewData } from '../data/reviewData'
+import { saveCaseCompletion } from '../data/caseCompletions'
+import { onboardingReportRecipients, groupEmailRecipient } from '../data/reportRecipients'
 import { emptyOperationalRiskEntry, sampleOperationalRiskEntry, isOperationalRiskEntryComplete } from '../data/operationalRisk'
 import { groupHeadApprovals, type ApprovalChainComment } from '../data/approvalChain'
 import { useCurrentUser } from '../context/useCurrentUser'
@@ -123,10 +125,29 @@ function SubmissionReview() {
   )
   const documentCount = documentCategories.reduce((sum, category) => sum + category.files.length, 0)
 
+  // Any group head rejecting halts the process; only the Integrated Reviewer's
+  // approval (the top of the escalation chain, see [[approval_chain_flow]]) completes it.
+  const isFinalApprover = currentUser.id === 'integrated-reviewer'
+  const isCaseCompletingAction =
+    currentUser.isGroupHead && ((action === 'approve' && isFinalApprover) || action === 'reject')
+  const reportRecipients = isCaseCompletingAction
+    ? [...onboardingReportRecipients(), groupEmailRecipient(submission.businessUnit)]
+    : []
+
   function handleConfirm() {
     setConfirmOpen(false)
     if (action === 'submit' && id) {
       saveReviewData(id, { summaryValues, ratings, operationalRisk })
+    }
+    if (isCaseCompletingAction && id) {
+      updateOnboardingSubmissionStatus(id, action === 'approve' ? 'Approved' : 'Rejected')
+      saveCaseCompletion(id, {
+        decision: action === 'approve' ? 'approved' : 'rejected',
+        decidedByName: currentUser.name,
+        decidedByRole: currentUser.role,
+        decidedAtLabel: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        comment: groupHeadComment,
+      })
     }
     setSuccessOpen(true)
   }
@@ -291,6 +312,8 @@ function SubmissionReview() {
           onClose={handleCloseSuccess}
           title={actionCopy[action].successTitle}
           message={actionCopy[action].successMessage}
+          sharedWithEmails={isCaseCompletingAction ? reportRecipients.map((r) => r.email) : undefined}
+          onViewReport={isCaseCompletingAction ? () => navigate(`/vendor-onboarding/${id}/report`) : undefined}
         />
       </div>
     )
