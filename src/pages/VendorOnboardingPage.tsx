@@ -7,7 +7,7 @@ import OnboardingStatusBadge from '../components/OnboardingStatusBadge'
 import NewVendorRequestModal from '../components/NewVendorRequestModal'
 import SubmittedSuccessModal from '../components/SubmittedSuccessModal'
 import { addOnboardingSubmission, onboardingSubmissions } from '../data/onboardingSubmissions'
-import { useCurrentUser } from '../context/UserContext'
+import { useCurrentUser } from '../context/useCurrentUser'
 import type { OnboardingStatus } from '../types/onboarding'
 
 const PAGE_SIZE = 5
@@ -46,6 +46,9 @@ export default function VendorOnboardingPage() {
   }
 
   const filtered = useMemo(() => {
+    // Not read below; it exists purely to invalidate this memo after
+    // addOnboardingSubmission mutates the shared array in place.
+    void submissionsVersion
     const scopeStatuses = STATUSES_BY_TAB[tab]
     return onboardingSubmissions.filter((submission) => {
       if (!scopeStatuses.includes(submission.status)) return false

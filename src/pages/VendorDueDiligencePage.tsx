@@ -5,7 +5,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import Pagination from '../components/Pagination'
 import DueDiligenceStatusBadge from '../components/DueDiligenceStatusBadge'
 import { dueDiligenceRequests } from '../data/dueDiligenceRequests'
-import { useCurrentUser } from '../context/UserContext'
+import { useCurrentUser } from '../context/useCurrentUser'
 import type { DueDiligenceStatus } from '../types/dueDiligence'
 
 const PAGE_SIZE = 5

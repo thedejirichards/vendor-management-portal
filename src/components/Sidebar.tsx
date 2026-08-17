@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { LayoutGrid, FileText, Power, ShieldCheck, LogOut } from 'lucide-react'
 import accessLogo from '../assets/brand/access-logo.svg'
-import { useCurrentUser } from '../context/UserContext'
+import { useCurrentUser } from '../context/useCurrentUser'
 import type { NavKey } from '../data/users'
 
 const navItems: { to: string; label: string; icon: typeof LayoutGrid; key: NavKey }[] = [

@@ -16,7 +16,7 @@ import { businessAssessmentFields } from '../data/businessAssessmentFields'
 import { riskAssessmentParameters, testScoreScenarios } from '../data/riskAssessmentParameters'
 import { getReviewData, saveReviewData } from '../data/reviewData'
 import { emptyOperationalRiskEntry, sampleOperationalRiskEntry, isOperationalRiskEntryComplete } from '../data/operationalRisk'
-import { useCurrentUser } from '../context/UserContext'
+import { useCurrentUser } from '../context/useCurrentUser'
 import type { AssessmentSummaryValues, OperationalRiskEntry, RatingKey, RiskAssessmentRatings } from '../types/assessment'
 
 type CaseReviewTab = 'documentReview' | 'summary' | 'assessment' | 'riskAssessment' | 'businessAssessment'
@@ -94,50 +94,48 @@ function sampleRatings(): RiskAssessmentRatings {
 
 export default function VendorDueDiligenceDetailPage() {
   const { id } = useParams()
+  const { currentUser } = useCurrentUser()
+  // Remount the case review whenever the case or the acting user changes, so
+  // loaded/sample review data and the selected tab always start fresh for
+  // that combination (see [[business_unit_due_diligence_flow]] memory).
+  return <CaseReview key={`${id ?? 'none'}-${currentUser.id}`} />
+}
+
+function CaseReview() {
+  const { id } = useParams()
   const navigate = useNavigate()
   const { currentUser } = useCurrentUser()
   const request = dueDiligenceRequests.find((r) => r.id === id)
-
-  const [tab, setTab] = useState<CaseReviewTab>('documentReview')
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [successOpen, setSuccessOpen] = useState(false)
-  const [action, setAction] = useState<ReviewAction>('submit')
-  const [comment, setComment] = useState('')
-  const [summaryValues, setSummaryValues] = useState<AssessmentSummaryValues>({})
-  const [ratings, setRatings] = useState<RiskAssessmentRatings>({})
-  const [operationalRisk, setOperationalRisk] = useState<OperationalRiskEntry>(emptyOperationalRiskEntry)
-  const [businessAssessmentValues, setBusinessAssessmentValues] = useState<AssessmentSummaryValues>({})
-  const [deactivationRecommended, setDeactivationRecommended] = useState(request?.deactivationRecommended ?? false)
 
   const isChecker = currentUser.isChecker || currentUser.isGroupHead
   const isBusinessUnit = currentUser.id === 'business-unit'
   const isFinalApprover = currentUser.id === 'group-head-orm'
   const tabs = isBusinessUnit ? businessUnitTabs : isFinalApprover ? finalApproverTabs : reviewerTabs
 
+  const stored = id ? getReviewData(id) : undefined
+
+  const [tab, setTab] = useState<CaseReviewTab>('documentReview')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [successOpen, setSuccessOpen] = useState(false)
+  const [action, setAction] = useState<ReviewAction>('submit')
+  const [comment, setComment] = useState('')
+  const [summaryValues, setSummaryValues] = useState<AssessmentSummaryValues>(
+    () => stored?.summaryValues ?? (isChecker ? sampleSummaryValues() : {}),
+  )
+  const [ratings, setRatings] = useState<RiskAssessmentRatings>(
+    () => stored?.ratings ?? (isChecker ? sampleRatings() : {}),
+  )
+  const [operationalRisk, setOperationalRisk] = useState<OperationalRiskEntry>(
+    () => stored?.operationalRisk ?? (isChecker ? sampleOperationalRiskEntry : emptyOperationalRiskEntry),
+  )
+  const [businessAssessmentValues, setBusinessAssessmentValues] = useState<AssessmentSummaryValues>(
+    () => stored?.businessAssessmentValues ?? (isChecker ? sampleBusinessAssessmentValues() : {}),
+  )
+  const [deactivationRecommended, setDeactivationRecommended] = useState(request?.deactivationRecommended ?? false)
+
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [tab])
-
-  useEffect(() => {
-    if (!id) return
-    const stored = getReviewData(id)
-    if (stored) {
-      setSummaryValues(stored.summaryValues)
-      setRatings(stored.ratings)
-      setOperationalRisk(stored.operationalRisk ?? emptyOperationalRiskEntry)
-      setBusinessAssessmentValues(stored.businessAssessmentValues ?? {})
-    } else if (isChecker) {
-      setSummaryValues(sampleSummaryValues())
-      setRatings(sampleRatings())
-      setOperationalRisk(sampleOperationalRiskEntry)
-      setBusinessAssessmentValues(sampleBusinessAssessmentValues())
-    } else {
-      setSummaryValues({})
-      setRatings({})
-      setOperationalRisk(emptyOperationalRiskEntry)
-      setBusinessAssessmentValues({})
-    }
-  }, [id, isChecker])
 
   if (!request) {
     return (

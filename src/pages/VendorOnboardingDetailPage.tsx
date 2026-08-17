@@ -18,7 +18,7 @@ import { riskAssessmentParameters, testScoreScenarios } from '../data/riskAssess
 import { getReviewData, saveReviewData } from '../data/reviewData'
 import { emptyOperationalRiskEntry, sampleOperationalRiskEntry, isOperationalRiskEntryComplete } from '../data/operationalRisk'
 import { groupHeadApprovals, type ApprovalChainComment } from '../data/approvalChain'
-import { useCurrentUser } from '../context/UserContext'
+import { useCurrentUser } from '../context/useCurrentUser'
 import type { AssessmentSummaryValues, OperationalRiskEntry, RatingKey, RiskAssessmentRatings } from '../types/assessment'
 
 type ReviewTab = 'documents' | 'summary' | 'assessment' | 'riskAssessment'
@@ -72,9 +72,21 @@ function sampleRatings(): RiskAssessmentRatings {
 
 export default function VendorOnboardingDetailPage() {
   const { id } = useParams()
+  const { currentUser } = useCurrentUser()
+  // Remount the review whenever the submission or the acting user changes, so
+  // loaded/sample review data and the selected tab always start fresh for
+  // that combination.
+  return <SubmissionReview key={`${id ?? 'none'}-${currentUser.id}`} />
+}
+
+function SubmissionReview() {
+  const { id } = useParams()
   const navigate = useNavigate()
   const { currentUser } = useCurrentUser()
   const submission = onboardingSubmissions.find((s) => s.id === id)
+
+  const stored = id ? getReviewData(id) : undefined
+  const isCheckerOrGroupHead = currentUser.isChecker || currentUser.isGroupHead
 
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [successOpen, setSuccessOpen] = useState(false)
@@ -83,31 +95,19 @@ export default function VendorOnboardingDetailPage() {
   const [groupHeadTab, setGroupHeadTab] = useState<GroupHeadTab>('makersAssessment')
   const [groupHeadComment, setGroupHeadComment] = useState('')
   const [checkerComment, setCheckerComment] = useState('')
-  const [summaryValues, setSummaryValues] = useState<AssessmentSummaryValues>({})
-  const [ratings, setRatings] = useState<RiskAssessmentRatings>({})
-  const [operationalRisk, setOperationalRisk] = useState<OperationalRiskEntry>(emptyOperationalRiskEntry)
+  const [summaryValues, setSummaryValues] = useState<AssessmentSummaryValues>(
+    () => stored?.summaryValues ?? (isCheckerOrGroupHead ? sampleSummaryValues() : {}),
+  )
+  const [ratings, setRatings] = useState<RiskAssessmentRatings>(
+    () => stored?.ratings ?? (isCheckerOrGroupHead ? sampleRatings() : {}),
+  )
+  const [operationalRisk, setOperationalRisk] = useState<OperationalRiskEntry>(
+    () => stored?.operationalRisk ?? (isCheckerOrGroupHead ? sampleOperationalRiskEntry : emptyOperationalRiskEntry),
+  )
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [tab, groupHeadTab])
-
-  useEffect(() => {
-    if (!id) return
-    const stored = getReviewData(id)
-    if (stored) {
-      setSummaryValues(stored.summaryValues)
-      setRatings(stored.ratings)
-      setOperationalRisk(stored.operationalRisk ?? emptyOperationalRiskEntry)
-    } else if (currentUser.isChecker || currentUser.isGroupHead) {
-      setSummaryValues(sampleSummaryValues())
-      setRatings(sampleRatings())
-      setOperationalRisk(sampleOperationalRiskEntry)
-    } else {
-      setSummaryValues({})
-      setRatings({})
-      setOperationalRisk(emptyOperationalRiskEntry)
-    }
-  }, [id, currentUser.isChecker, currentUser.isGroupHead])
 
   if (!submission) {
     return (

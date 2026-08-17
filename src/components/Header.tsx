@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
 import { users } from '../data/users'
-import { useCurrentUser } from '../context/UserContext'
+import { useCurrentUser } from '../context/useCurrentUser'
 
 export default function Header() {
   const [open, setOpen] = useState(false)
