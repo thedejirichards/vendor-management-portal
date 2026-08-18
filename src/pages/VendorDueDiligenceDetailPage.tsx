@@ -7,6 +7,7 @@ import AssessmentSummaryTab from '../components/AssessmentSummaryTab'
 import VendorAssessmentTab from '../components/VendorAssessmentTab'
 import RiskAssessmentTab from '../components/RiskAssessmentTab'
 import BusinessAssessmentTab from '../components/BusinessAssessmentTab'
+import WorkflowHistoryTab from '../components/WorkflowHistoryTab'
 import ConfirmSubmissionModal from '../components/ConfirmSubmissionModal'
 import SubmittedSuccessModal from '../components/SubmittedSuccessModal'
 import { dueDiligenceRequests, updateDueDiligenceRequestStatus } from '../data/dueDiligenceRequests'
@@ -16,12 +17,14 @@ import { businessAssessmentFields } from '../data/businessAssessmentFields'
 import { riskAssessmentParameters, testScoreScenarios } from '../data/riskAssessmentParameters'
 import { getReviewData, saveReviewData } from '../data/reviewData'
 import { saveCaseCompletion } from '../data/caseCompletions'
+import { getWorkflowHistory, appendWorkflowHistoryEntry } from '../data/workflowHistory'
+import { dueDiligenceWorkflowStages } from '../data/workflowStages'
 import { dueDiligenceReportRecipients, groupEmailRecipient } from '../data/reportRecipients'
 import { emptyOperationalRiskEntry, sampleOperationalRiskEntry, isOperationalRiskEntryComplete } from '../data/operationalRisk'
 import { useCurrentUser } from '../context/useCurrentUser'
 import type { AssessmentSummaryValues, OperationalRiskEntry, RatingKey, RiskAssessmentRatings } from '../types/assessment'
 
-type CaseReviewTab = 'documentReview' | 'summary' | 'assessment' | 'riskAssessment' | 'businessAssessment'
+type CaseReviewTab = 'documentReview' | 'summary' | 'assessment' | 'riskAssessment' | 'businessAssessment' | 'workflowHistory'
 type ReviewAction = 'submit' | 'approve' | 'reject' | 'recommendDeactivation'
 
 const reviewerTabs: { key: CaseReviewTab; label: string }[] = [
@@ -29,11 +32,13 @@ const reviewerTabs: { key: CaseReviewTab; label: string }[] = [
   { key: 'summary', label: 'Assessment Summary' },
   { key: 'assessment', label: 'Vendor Assessment' },
   { key: 'riskAssessment', label: 'Risk Assessment' },
+  { key: 'workflowHistory', label: 'Workflow History' },
 ]
 
 const businessUnitTabs: { key: CaseReviewTab; label: string }[] = [
   { key: 'documentReview', label: 'Document Review' },
   { key: 'businessAssessment', label: 'Business Assessment' },
+  { key: 'workflowHistory', label: 'Workflow History' },
 ]
 
 const finalApproverTabs: { key: CaseReviewTab; label: string }[] = [
@@ -42,6 +47,7 @@ const finalApproverTabs: { key: CaseReviewTab; label: string }[] = [
   { key: 'assessment', label: 'Vendor Assessment' },
   { key: 'businessAssessment', label: 'Business Assessment' },
   { key: 'riskAssessment', label: 'Risk Assessment' },
+  { key: 'workflowHistory', label: 'Workflow History' },
 ]
 
 const actionCopy: Record<
@@ -115,6 +121,7 @@ function CaseReview() {
   const tabs = isBusinessUnit ? businessUnitTabs : isFinalApprover ? finalApproverTabs : reviewerTabs
 
   const stored = id ? getReviewData(id) : undefined
+  const workflowEntries = id ? getWorkflowHistory(id) : []
 
   const [tab, setTab] = useState<CaseReviewTab>('documentReview')
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -166,6 +173,14 @@ function CaseReview() {
   const isCaseCompletingAction = isFinalApprover && (action === 'approve' || action === 'reject')
   const reportRecipients = isFinalApprover ? [...dueDiligenceReportRecipients(), groupEmailRecipient(request.businessUnit)] : []
 
+  // Maps the acting user to their stage in dueDiligenceWorkflowStages (see [[case_completion_report]]-adjacent memory).
+  function currentWorkflowStageKey(): string {
+    if (isBusinessUnit) return 'business-unit'
+    if (currentUser.id === 'orm-checker') return 'orm-checker'
+    if (isFinalApprover) return 'group-head-orm'
+    return 'orm-maker'
+  }
+
   function handleConfirm() {
     setConfirmOpen(false)
     if (action === 'submit' && id) {
@@ -173,6 +188,16 @@ function CaseReview() {
     }
     if (action === 'recommendDeactivation') {
       setDeactivationRecommended(true)
+    }
+    if (id && (action === 'submit' || action === 'approve' || action === 'reject')) {
+      appendWorkflowHistoryEntry(id, {
+        stageKey: currentWorkflowStageKey(),
+        decision: action === 'submit' ? 'submitted' : action === 'approve' ? 'approved' : 'rejected',
+        actorName: currentUser.name,
+        actorRole: currentUser.role,
+        timestampLabel: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        comment: action === 'submit' ? undefined : comment,
+      })
     }
     if (isCaseCompletingAction && id) {
       updateDueDiligenceRequestStatus(id, action === 'approve' ? 'Completed' : 'Rejected')
@@ -295,6 +320,8 @@ function CaseReview() {
           onCommentChange={setComment}
         />
       )}
+
+      {tab === 'workflowHistory' && <WorkflowHistoryTab stages={dueDiligenceWorkflowStages} entries={workflowEntries} />}
 
       <ConfirmSubmissionModal
         open={confirmOpen}
