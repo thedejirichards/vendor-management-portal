@@ -22,7 +22,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
         <div className="absolute bottom-8 left-6 right-6 md:bottom-14 md:left-10 md:right-10">
           <h1 className="text-white font-extrabold uppercase leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
-            <span className="border-b-4 border-white pb-1">Third Party Risk</span>
+            <span className="border-b-4 border-white pb-1">Vendor</span>
             <br />
             Management Portal
           </h1>
