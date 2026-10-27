@@ -1,58 +1,101 @@
-import { NavLink } from 'react-router-dom'
-import { LayoutGrid, FileText, Power, ShieldCheck, LogOut } from 'lucide-react'
+import { Link, NavLink } from 'react-router-dom'
+import {
+  Activity,
+  BarChart3,
+  BriefcaseBusiness,
+  ClipboardList,
+  HeartHandshake,
+  LayoutDashboard,
+  Leaf,
+  Megaphone,
+  Settings2,
+  UsersRound,
+  X,
+} from 'lucide-react'
 import accessLogo from '../assets/brand/access-logo.svg'
-import { useCurrentUser } from '../context/useCurrentUser'
-import type { NavKey } from '../data/users'
 
-const navItems: { to: string; label: string; icon: typeof LayoutGrid; key: NavKey }[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid, key: 'dashboard' },
-  { to: '/vendor-onboarding', label: 'Vendor Onboarding', icon: FileText, key: 'vendor-onboarding' },
-  { to: '/vendor-deactivation', label: 'Vendor Deactivation', icon: Power, key: 'vendor-deactivation' },
-  { to: '/vendor-due-diligence', label: 'Vendor Due Diligence', icon: ShieldCheck, key: 'vendor-due-diligence' },
+const navigationGroups = [
+  {
+    label: 'Workspace',
+    items: [{ to: '/dashboard', label: 'Overview', icon: LayoutDashboard }],
+  },
+  {
+    label: 'Data capture',
+    items: [
+      { to: '/operations', label: 'Sustainable operations', icon: Leaf },
+      { to: '/development-finance', label: 'Development finance', icon: BriefcaseBusiness },
+      { to: '/corporate-social-investment', label: 'Corporate social investment', icon: HeartHandshake },
+      { to: '/employee-volunteering', label: 'Employee volunteering', icon: UsersRound },
+      { to: '/advocacy-governance', label: 'Advocacy & governance', icon: Megaphone },
+    ],
+  },
+  {
+    label: 'Manage',
+    items: [
+      { to: '/submissions', label: 'Submissions & reviews', icon: ClipboardList },
+      { to: '/reports', label: 'Reports & analytics', icon: BarChart3 },
+      { to: '/settings', label: 'Configuration', icon: Settings2 },
+    ],
+  },
 ]
 
-export default function Sidebar() {
-  const { currentUser } = useCurrentUser()
-  const visibleItems = navItems.filter((item) => currentUser.visiblePages.includes(item.key))
+interface SidebarProps {
+  mobileOpen: boolean
+  onClose: () => void
+}
 
+export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   return (
-    <aside className="print:hidden sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r border-slate-200 bg-white">
-      <div className="flex h-20 items-center border-b border-slate-200 px-6">
-        <img src={accessLogo} alt="Access" className="h-6 w-auto" />
-      </div>
+    <>
+      {mobileOpen && <button aria-label="Close navigation" className="fixed inset-0 z-30 bg-slate-950/30 lg:hidden" onClick={onClose} />}
+      <aside className={`${mobileOpen ? 'flex' : 'hidden'} fixed inset-y-0 left-0 z-40 w-[272px] shrink-0 flex-col border-r border-slate-200 bg-white lg:sticky lg:top-0 lg:flex lg:h-screen`}>
+        <div className="flex h-[76px] items-center justify-between border-b border-slate-100 px-6">
+          <Link to="/dashboard" aria-label="Access Holdings Sustainability home" className="flex items-center">
+            <img src={accessLogo} alt="Access Holdings" className="h-[23px] w-auto" />
+          </Link>
+          <button type="button" aria-label="Close navigation" onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 lg:hidden">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6">
-        <h2 className="px-2 text-lg font-bold text-brand-600">Vendor Management</h2>
+        <div className="border-b border-slate-100 px-6 py-5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Access Holdings</p>
+          <p className="mt-1 text-[17px] font-bold tracking-tight text-brand-900">Sustainability portal</p>
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-brand-700">
+            <Activity className="h-3 w-3" />
+            Demo workspace
+          </span>
+        </div>
 
-        <nav className="mt-4 flex flex-col gap-1">
-          {visibleItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                  isActive
-                    ? 'bg-slate-100 font-semibold text-brand-600'
-                    : 'font-medium text-slate-600 hover:bg-slate-50'
-                }`
-              }
-            >
-              <Icon className="h-5 w-5" strokeWidth={2} />
-              {label}
-            </NavLink>
+        <nav aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 py-5">
+          {navigationGroups.map((group) => (
+            <div key={group.label} className="mb-6 last:mb-0">
+              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{group.label}</p>
+              <div className="space-y-1">
+                {group.items.map(({ to, label, icon: Icon }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    end={to === '/dashboard'}
+                    onClick={onClose}
+                    className={({ isActive }) => `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] transition-colors ${isActive ? 'bg-brand-50 font-semibold text-brand-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-700'}`}
+                  >
+                    <Icon className="h-[17px] w-[17px] shrink-0" strokeWidth={1.8} />
+                    <span className="min-w-0 truncate">{label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
-      </div>
 
-      <div className="border-t border-slate-200 p-4">
-        <button
-          type="button"
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
-        >
-          <LogOut className="h-5 w-5" strokeWidth={2} />
-          Exit System
-        </button>
-      </div>
-    </aside>
+        <div className="border-t border-slate-100 p-4">
+          <div className="rounded-xl bg-slate-50 px-3.5 py-3">
+            <p className="text-xs font-semibold text-slate-700">Need help?</p>
+            <p className="mt-1 text-[11px] leading-4 text-slate-500">Contact your sustainability data administrator.</p>
+          </div>
+        </div>
+      </aside>
+    </>
   )
 }
